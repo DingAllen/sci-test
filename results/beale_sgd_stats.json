@@ -1,0 +1,10 @@
+{
+  "mean_final_loss": NaN,
+  "std_final_loss": NaN,
+  "median_final_loss": NaN,
+  "min_final_loss": NaN,
+  "max_final_loss": NaN,
+  "mean_iterations": 397.06666666666666,
+  "success_rate": 0.23333333333333334,
+  "n_runs": 30
+}

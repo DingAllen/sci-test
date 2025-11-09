@@ -1,0 +1,10 @@
+{
+  "mean_final_loss": 0.7076900947954937,
+  "std_final_loss": 1.7049692582499045,
+  "median_final_loss": 0.3653686324219208,
+  "min_final_loss": 1.7336831278240245e-05,
+  "max_final_loss": 9.623618305694277,
+  "mean_iterations": 672.3,
+  "success_rate": 0.5,
+  "n_runs": 30
+}
