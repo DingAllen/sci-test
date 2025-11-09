@@ -184,6 +184,65 @@ class AdamW(Optimizer):
         self.v = None
 
 
+class SAM(Optimizer):
+    """
+    Sharpness-Aware Minimization (SAM) optimizer.
+    
+    SAM seeks parameters that lie in neighborhoods having uniformly low loss.
+    Reference: Foret et al., "Sharpness-Aware Minimization for Efficiently 
+    Improving Generalization", ICLR 2021.
+    """
+    
+    def __init__(self, base_optimizer, rho=0.05):
+        """
+        Args:
+            base_optimizer: Base optimizer to wrap (e.g., SGD, Adam)
+            rho: Neighborhood size for perturbation
+        """
+        self.base_optimizer = base_optimizer
+        self.rho = rho
+        self.name = f"SAM-{base_optimizer.name}"
+        self.learning_rate = base_optimizer.learning_rate
+        self.iteration = 0
+    
+    def step(self, x, gradient, objective_fn):
+        """
+        Perform SAM optimization step.
+        
+        SAM requires two gradient evaluations:
+        1. Compute adversarial perturbation in direction of steepest ascent
+        2. Update parameters using gradient at perturbed point
+        
+        Args:
+            x: Current parameters
+            gradient: Gradient at current point
+            objective_fn: Objective function (needed for SAM)
+            
+        Returns:
+            Updated parameters
+        """
+        # Step 1: Compute adversarial perturbation
+        grad_norm = np.linalg.norm(gradient)
+        if grad_norm > 1e-12:
+            epsilon = self.rho * gradient / grad_norm
+        else:
+            epsilon = np.zeros_like(gradient)
+        
+        # Step 2: Compute gradient at perturbed point
+        x_perturbed = x + epsilon
+        gradient_perturbed = objective_fn.gradient(x_perturbed)
+        
+        # Step 3: Update using base optimizer with perturbed gradient
+        x_new = self.base_optimizer.step(x, gradient_perturbed)
+        
+        self.iteration += 1
+        return x_new
+    
+    def reset(self):
+        self.iteration = 0
+        self.base_optimizer.reset()
+
+
 def get_optimizer(name, learning_rate=0.01, **kwargs):
     """Factory function to create optimizer by name."""
     optimizers = {
@@ -196,6 +255,13 @@ def get_optimizer(name, learning_rate=0.01, **kwargs):
     }
     
     if name.lower() not in optimizers:
+        # Check if it's a SAM variant
+        if name.lower().startswith('sam-'):
+            base_name = name[4:].lower()
+            if base_name in optimizers:
+                base_opt = optimizers[base_name](learning_rate=learning_rate, **kwargs)
+                rho = kwargs.pop('rho', 0.05)
+                return SAM(base_opt, rho=rho)
         raise ValueError(f"Unknown optimizer: {name}")
     
     return optimizers[name.lower()](learning_rate=learning_rate, **kwargs)
