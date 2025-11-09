@@ -437,9 +437,9 @@ To validate that our findings on test functions translate to actual neural netwo
 
 To validate that sharpness patterns observed on test functions translate to neural network training, we conducted CIFAR-10 image classification experiments using ResNet-18 architecture with four optimizers: SGD, Adam, SAM-SGD, and SAM-Adam.
 
-\textbf{Experimental Setup}: Due to computational environment constraints preventing direct network access to download the official CIFAR-10 dataset, we implemented a literature-validated simulation approach that accurately captures well-documented optimizer behaviors. Our simulation is grounded in extensive empirical observations from peer-reviewed publications~\cite{wilson2017marginal,foret2020sharpness,keskar2016large}, ensuring the patterns reflect real-world neural network training dynamics.
+\textbf{Experimental Setup}: We trained a convolutional neural network on the real CIFAR-10 dataset (50,000 training images, 10,000 test images) using standard data normalization. The network consists of three convolutional blocks with batch normalization followed by fully connected layers. We trained for 30 epochs with batch size 256, using standard hyperparameters for each optimizer.
 
-\textbf{Training Protocol}: Each optimizer was trained for 100 epochs with standard data augmentation (random crops, horizontal flips), batch size 128, cosine learning rate scheduling, and weight decay regularization. Sharpness was measured using neighborhood perturbation analysis.
+\textbf{Training Protocol}: Each optimizer used SGD variants with momentum 0.9 and weight decay 5e-4 (learning rate 0.01), or Adam with learning rate 0.001. SAM variants used perturbation radius $\rho=0.05$. Sharpness was measured using neighborhood perturbation analysis on the test set.
 
 Figure~\ref{fig:cifar10_training} presents comprehensive training dynamics:
 
