@@ -46,7 +46,11 @@ class ExperimentRunner:
             gradient = objective_fn.gradient(x)
             
             # Take optimization step
-            x = optimizer.step(x, gradient)
+            # Check if optimizer is SAM (needs objective_fn)
+            if hasattr(optimizer, 'base_optimizer'):  # SAM optimizer
+                x = optimizer.step(x, gradient, objective_fn)
+            else:
+                x = optimizer.step(x, gradient)
             
             # Record
             loss = objective_fn(x)
